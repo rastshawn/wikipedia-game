@@ -1,4 +1,5 @@
 import {spawn} from 'child_process';
+// TODO make this an articleService and articleModule instead
 export class Article {
     title: string;
     extracts: string;
@@ -24,7 +25,9 @@ export class Article {
       // TODO trim off related pages - test: Kawasaki_Heavy_Industries_&_Nippon_Sharyo_C751B
       // TODO trim off related websites - test: Gustavo_Nieves_Campello
       // TODO fix issues with quoted text - test: Monosodium_glutamate, Turkwel_River
-
+      // TODO exclude category / list pages - test: List_of_professional_wrestling_terms
+      // TODO error on this specific person - test: Lee_Min_Ho
+      
       // For topic sentence mode: strip out parentheses. https://stackoverflow.com/questions/55232131/about-parsing-parentheses-in-english-model
       return this;
     }

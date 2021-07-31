@@ -3,6 +3,7 @@ import { WikipediaService } from './wikipedia.service';
 
 @Module({
     imports: [HttpModule],
-    providers: [WikipediaService]
+    providers: [WikipediaService],
+    exports: [WikipediaService]
 })
 export class WikipediaModule {}
