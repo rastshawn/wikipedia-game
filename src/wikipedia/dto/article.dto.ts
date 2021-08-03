@@ -7,6 +7,7 @@ export class Article {
     rawPage: RawPage;
     modifiedText: string;
     sentences: any;
+    trimmedTopicSentence: string;
     async init(rawResponse) {
       this.title = 'TITLE';
       this.extracts = 'TITLE';
@@ -21,6 +22,8 @@ export class Article {
 
       await this.tokenizeSentences();
 
+      // remove parentheticals from the first sentence for computer answers
+      this.trimmedTopicSentence = this.sentences[0]?.replace(/ \(.*\)/g, '');
       // TODO trim off references - test: Boppelsen
       // TODO trim off related pages - test: Kawasaki_Heavy_Industries_&_Nippon_Sharyo_C751B
       // TODO trim off related websites - test: Gustavo_Nieves_Campello

@@ -9,7 +9,6 @@ export class Question {
     votes: Vote[];
     constructor() {
       this.id = uuid();
-
       this.submissions = [];
       this.votes = [];
       return this;

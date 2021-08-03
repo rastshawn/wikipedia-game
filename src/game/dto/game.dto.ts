@@ -8,6 +8,7 @@ export class Game {
     currentQuestionCounter: number;
     questions: Question[]; // TODO This has to be hidden from the network tab. maybe make it private? Send via socket(?)
     players: Player[];
+    state: "writing"|"voting"|"lobby"|"afterQuestion"|"afterLastQuestion"|"";
     leadPlayerId: string; // the player in control of the game.
     config: GameConfig; // stored for possibly replaying with same config
 
