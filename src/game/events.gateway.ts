@@ -1,19 +1,35 @@
+import { Injectable } from '@nestjs/common';
 import { WebSocketGateway, SubscribeMessage, MessageBody, WebSocketServer, OnGatewayConnection, OnGatewayDisconnect } from '@nestjs/websockets'
 import { Server } from 'socket.io';
+import { GameService } from './game.service';
 
-@WebSocketGateway({
-    handlePreflightRequest: (req: any, res: { writeHead: (arg0: number, arg1: { 'Access-Control-Allow-Headers': string; 'Access-Control-Allow-Origin': string; 'Access-Control-Allow-Credentials': boolean; }) => void; end: () => void; }) => {
-      const headers = {
-        'Access-Control-Allow-Headers': 'Authorization',
-        'Access-Control-Allow-Origin': 'the page origin',
-        'Access-Control-Allow-Credentials': true,
-      };
-      res.writeHead(200, headers);
-      res.end();
-    }
-  })
+@WebSocketGateway()
 export class EventGateway implements OnGatewayConnection, OnGatewayDisconnect{
     @WebSocketServer() server: Server;
+
+    constructor(private gameService: GameService) {}
+
+    /*
+        each page that loads, make the same readout: 
+        gameId:
+        name:
+        [join game] - note: if gameID empty, this creates a new game
+        // currentGameId //
+
+        -- lobby section
+        // players //
+
+        -- game section
+        // question //
+        answer:
+        [submit]
+
+        -- vote section
+        [answer] [answer] [answer]
+        answerId: 
+        [submit]
+
+    */
 
     async handleConnection() {
         console.log("CONNECT");

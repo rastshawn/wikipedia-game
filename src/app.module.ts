@@ -8,9 +8,12 @@ import { GameModule } from './game/game.module';
 import { GameController } from './game/game.controller';
 import { GameService } from './game/game.service';
 import { QuestionModule } from './game/question.module';
-
+import { ServeStaticModule } from '@nestjs/serve-static';
+import { join } from 'path';
 @Module({
-  imports: [WikipediaModule, GameModule],
+  imports: [WikipediaModule, GameModule, ServeStaticModule.forRoot({
+    rootPath: join(__dirname, '..', 'client'),
+  })],
   controllers: [AppController, WikipediaController, GameController],
   providers: [AppService],
 })
