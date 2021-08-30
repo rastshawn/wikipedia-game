@@ -4,6 +4,8 @@ import { Player } from './dto/player.dto';
 import { Question } from './dto/question.dto';
 import { GameConfig } from './interfaces/game-config.interface';
 import { QuestionService } from './question.service';
+import { Submission } from './dto/submission.dto';
+import { Vote } from './dto/vote.dto';
 
 @Injectable()
 export class GameService {
@@ -12,6 +14,75 @@ export class GameService {
     constructor(private questionService: QuestionService) {
         this.games = {};
     };
+
+    getQuestionScore(question: Question) {
+        const pointsForBeingCorrect = 10;
+        const pointsForBeingGuessed = 5;
+
+        const playersBySubmissionId = []; // holds PlayerScore objects
+        const playersByPlayerId = []; // holds same PlayerScore objects as above
+        const playersArray = []; // holds same PlayerScore objects as above, but without specific keys
+
+        // make array of players, indexed by submission ID
+        question.submissions.forEach((submission) => {
+            let playerId = 'SYSTEM';
+
+
+            let playerOrSystemObj = {
+                id: 'SYSTEM',
+            };
+            if (submission.player != null) {
+                playerOrSystemObj = submission.player;
+            }
+
+            const newPlayerScoreObject = {
+                player: playerOrSystemObj,
+                score: 0,
+                fooledArray: [], // holds playerNames of people who voted for their submission
+                submissionText: submission.text
+            };
+
+
+            playersBySubmissionId[submission.id] = newPlayerScoreObject;
+            playersByPlayerId[playerId] = newPlayerScoreObject;
+            
+            // if submission was not written by a computer
+            if (submission.player.id != 'SYSTEM') {
+                playersArray.push(newPlayerScoreObject);
+            }
+        })
+
+        question.votes.forEach((vote) => {
+            const submissionId = vote.submissionId;
+            const playerWhoWroteSubmission = playersBySubmissionId[submissionId];
+            const playerWhoVotedForSubmission = playersByPlayerId[vote.player.id];
+
+            // this submission is the correct (computer's) submission if the player ID is SYSTEM
+            if (playerWhoWroteSubmission.player.id == 'SYSTEM') {
+                playerWhoVotedForSubmission.score += pointsForBeingCorrect;
+            } else {
+                playerWhoWroteSubmission.score += pointsForBeingGuessed;
+                playerWhoWroteSubmission.fooledArray.push(playerWhoVotedForSubmission.name);
+            }
+        })
+
+        return playersByPlayerId;
+    }
+
+    getPlayerScores(game: Game) {
+        const playerScoreTuplets = [];
+
+        game.players.forEach((player) => {
+            playerScoreTuplets.push({
+                name: player.name,
+                playerId: player.id,
+                score: player.score
+            });
+        })
+
+        // TODO sort
+        return playerScoreTuplets;
+    }
 
     // When a player clicks to create a private lobby, this function is called.
     async addGame({ player }: { player: Player }): Promise<Game> {
@@ -56,20 +127,35 @@ export class GameService {
         // end by tabulating game state
     };
 
-    enterSubmission({ gameId, playerId, text, questionId }: { gameId: string, playerId: string, text: string, questionId: string }) {
+    enterSubmission({ gameId, playerId, text }: { gameId: string, playerId: string, text: string }) {
 
+        const game = this.getGame(gameId);
+        const question = game.questions[game.currentQuestionCounter];
+        question.submissions.push(
+            new Submission({
+              questionId: question.id,
+              text: text,
+              player: game.getPlayer(playerId)
+            })
+          );
         // end by tabulating game state
-        this.manageGameState(this.getGame(gameId));
+        this.manageGameState(game);
     };
     enterVote({ gameId, playerId, submissionId }: { gameId: string, playerId: string, submissionId: string }) {
-
+        const game = this.getGame(gameId);
+        const question = game.questions[game.currentQuestionCounter];
+        const player = game.getPlayer[playerId];
+        question.votes.push(
+            new Vote(player, submissionId)
+        );
         // end by tabulating game state
         this.manageGameState(this.getGame(gameId));
     };
 
     private manageGameState(game: Game) {
         const currentQuestion: Question = game.questions[game.currentQuestionCounter];
-        let state: "writing"|"voting"|""|"afterQuestion"|"afterLastQuestion" = '';
+        let state: "writing"|"voting"|""|
+        "scoring"|"endgame" = '';
         // have all write-ins been submitted? 
         if (currentQuestion?.submissions?.length != game.players.length) {
             // not all write-ins have been submitted
@@ -78,10 +164,11 @@ export class GameService {
             state = "voting";
         } else {
             // this question has had all submissions and votes, time to score
-            state = "afterQuestion";
+            state = "scoring";
+            // emit state "scoring"
             this.scoreQuestion(currentQuestion);
             if (game.currentQuestionCounter == game.questions.length) {
-                state = "afterLastQuestion";
+                state = "endgame";
             }
         }
         game.state = state;
@@ -99,18 +186,8 @@ export class GameService {
     }
 
     private scoreQuestion(question: Question) {
-        const pointsForBeingCorrect = 10;
-        const pointsForBeingGuessed = 5;
-        question.votes.forEach((vote) => {
-            const relatedSubmission = question.submissions.filter(submission => submission.id == vote.submissionId)[0];
-            // vote is correct if the player that created the submission is null
-            // otherwise, give points to that player
-            if (relatedSubmission.player == null) {
-                vote.player.score += pointsForBeingCorrect;
-            } else {
-                relatedSubmission.player.score += pointsForBeingGuessed;
-            }
-        })
+        const scores = this.getQuestionScore(question);
+        
     }
 
     // grab all player scores, sort, and add ranking to them.
@@ -137,5 +214,8 @@ export class GameService {
         else throw new Error("no game found for gameId");
     }
 
+    getGameFromPlayer(playerId: string) {
+
+    }
 
 }

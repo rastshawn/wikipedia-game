@@ -8,16 +8,25 @@ export class Game {
     currentQuestionCounter: number;
     questions: Question[]; // TODO This has to be hidden from the network tab. maybe make it private? Send via socket(?)
     players: Player[];
-    state: "writing"|"voting"|"lobby"|"afterQuestion"|"afterLastQuestion"|"";
+    state: "writing"|"voting"|"lobby"|"scoring"|"endgame"|"";
     leadPlayerId: string; // the player in control of the game.
     config: GameConfig; // stored for possibly replaying with same config
 
     constructor(player: Player) {
-      this.players = [player];
+      this.players[player.id] = player;
       this.leadPlayerId = player.id;
       this.currentQuestionCounter = 0;
       this.id = uuid();
       // note: questions still need to be loaded. 
       return this;
     }  
+
+    getPlayer(playerId: string) {
+      const player = this.players[playerId];
+      if (player) {
+        return player;
+      } else {
+        throw new Error(`getPlayer could not find player with id ${playerId}`)
+      }
+    }
 }
