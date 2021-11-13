@@ -23,4 +23,19 @@ export class Player {
       this.score = 0;
       return this;
     }
+
+    serialize(): PlayerSerialized {
+      return {
+        id: this.id,
+        name: this.name,
+        score: this.score
+      };
+    }
+}
+
+export interface PlayerSerialized {
+  // necessary because the sockets cannot return themselves
+  id: string;
+  name: string;
+  score: number;
 }

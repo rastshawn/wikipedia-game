@@ -23,15 +23,10 @@ function Game(props) {
   // https://stackoverflow.com/questions/58432076/websockets-with-functional-components
 
   useEffect(() => { // https://wattenberger.com/blog/react-hooks
+    socket.socketRef.emit("getGame", params.id, (response) => {
 
-    // let interval = setTimeout(() => {
-    //   setLoading(!loading);
-    // }, 1000);
-    // create the sockets if not done yet
-    socket.socketRef.emit("events", {a: 1, b: 2}, (response) => {
-      console.log("<GAME>")
       console.log(response);
-      console.log("</GAME>");
+
     });
 
 

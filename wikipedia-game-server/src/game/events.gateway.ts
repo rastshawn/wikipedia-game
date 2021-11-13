@@ -5,7 +5,9 @@ import { GameService } from './game.service';
 import { Submission } from './dto/submission.dto';
 
 // TODO these imports should probably be refactored and put into modules or something
-import { Player } from './dto/player.dto';
+import { Player, PlayerSerialized } from './dto/player.dto';
+import { GameSerialized } from './dto/game.dto';
+import { GameConfig } from './interfaces/game-config.interface';
 
 /**
  * Handles the web sockets, which themselves handle game events. 
@@ -71,25 +73,42 @@ export class EventGateway implements OnGatewayConnection, OnGatewayDisconnect{
 
     /////// MAIN PAGE   
     @SubscribeMessage('createNewGame')     
-    createNewGame(@MessageBody() name: string, @ConnectedSocket() client: Socket): any { // todo add type
-      let player = new Player(client, name);
-      const game = this.gameService.addGame({player});
+    async createNewGame(@MessageBody() data: {
+      name: string;
+      config: GameConfig
+    }, @ConnectedSocket() client: Socket): Promise<{
+      player: PlayerSerialized,
+      game: GameSerialized
+    }> {
+      let player = new Player(client, data.name);
+      const game = await this.gameService.addGame({player});
+      await this.gameService.applyConfig(
+        {
+          gameId: game.id, 
+          config: data.config
+        }
+      );
       return {
-        player, 
-        game
+        player: player.serialize(),
+        game: game.serialize()
       }
     }
 
     /////// LOBBY
     @SubscribeMessage('joinGame')     
     joinGame(@MessageBody() params: {name: string, gameId: string}, @ConnectedSocket() client: Socket): any { // todo don't know if this is possible TODO add type
-      
+      // TODO need to serialize the game and player
       let player = new Player(client, params.name);
       const game = this.gameService.joinGame({gameId: params.gameId, player});
       return {
         player, 
         game
       }
+    }
+    @SubscribeMessage('getGame')     
+    getGame(@MessageBody() gameId: string, /* use for auth @ConnectedSocket() client: Socket*/): GameSerialized { 
+      const game = this.gameService.getGame(gameId);
+      return game.serialize();
     }
 
     @SubscribeMessage('loadPlayers')

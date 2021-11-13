@@ -1,5 +1,5 @@
 import { Question } from "./question.dto";
-import { Player } from "./player.dto";
+import { Player, PlayerSerialized } from "./player.dto";
 import { GameConfig } from "../interfaces/game-config.interface";
 import { v4 as uuid } from 'uuid';
 
@@ -13,6 +13,8 @@ export class Game {
     config: GameConfig; // stored for possibly replaying with same config
 
     constructor(player: Player) {
+      this.players = [];
+      console.log(player.id);
       this.players[player.id] = player;
       this.leadPlayerId = player.id;
       this.currentQuestionCounter = 0;
@@ -29,4 +31,31 @@ export class Game {
         throw new Error(`getPlayer could not find player with id ${playerId}`)
       }
     }
+
+    serialize(): GameSerialized {
+      const serializedPlayers = Object.keys(this.players).map(key => {
+        const player = this.players[key];
+        return player.serialize()
+      });
+
+      return {
+        players: serializedPlayers,
+        id: this.id,
+        currentQuestionCounter: this.currentQuestionCounter,
+        questions: this.questions,
+        state: this.state,
+        leadPlayerId: this.leadPlayerId,
+        config: this.config
+      }
+    }
+}
+export interface GameSerialized {
+  // necessary because the sockets cannot return themselves
+  players: PlayerSerialized[];
+  id: string;
+  currentQuestionCounter: number;
+  questions: Question[]; 
+  state: "writing"|"voting"|"lobby"|"scoring"|"endgame"|"";
+  leadPlayerId: string; 
+  config: GameConfig; 
 }

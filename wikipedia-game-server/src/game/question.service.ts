@@ -11,8 +11,8 @@ export class QuestionService {
 
     async create() {
         const newQuestion = new Question();
-        // TODO make it getRandomArticle(), not getTestArticle();
-        const article = await this.wikipediaService.getTestArticle();
+        // getTestArticle() will always return the same article, for testing
+        const article = await this.wikipediaService.getRandomArticle();
         newQuestion.article = article;
         newQuestion.submissions.push(
             new Submission(
