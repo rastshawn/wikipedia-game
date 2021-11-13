@@ -12,7 +12,7 @@ import { ServeStaticModule } from '@nestjs/serve-static';
 import { join } from 'path';
 @Module({
   imports: [WikipediaModule, GameModule, ServeStaticModule.forRoot({
-    rootPath: join(__dirname, '..', 'client'),
+    rootPath: join(__dirname, '..', 'client/build'),
   })],
   controllers: [AppController, WikipediaController, GameController],
   providers: [AppService],

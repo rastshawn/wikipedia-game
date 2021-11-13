@@ -7,6 +7,8 @@ import { QuestionService } from './question.service';
 import { Submission } from './dto/submission.dto';
 import { Vote } from './dto/vote.dto';
 
+import { Socket } from 'socket.io';
+
 @Injectable()
 export class GameService {
     games: { [id: string]: Game }; // store games in memory
@@ -120,7 +122,18 @@ export class GameService {
 
     }
 
-    joinGame({ gameId }: { gameId: string }) {};
+    joinGame({ gameId, player }: { gameId: string, player: Player }) {
+        const game = this.getGame(gameId);
+        game.players.push(player);
+
+        // emit to all sockets that a player has joined
+        // we don't really need to await this, but TODO we might want to know if it fails
+        this.getAllPlayerSockets(game).forEach((socket) => {
+            socket.emit("newPlayer", game.players)
+        })
+        return game;
+    };
+
     kickPlayer({ gameId, playerId }: { gameId: string, playerId: string }) {
         // TODO implement later; after minimum viable product. 
         // This will involve modifying the manage game state function to check for each player to vote specifically, rather than just number of submissions
@@ -216,6 +229,12 @@ export class GameService {
 
     getGameFromPlayer(playerId: string) {
 
+    }
+
+    getAllPlayerSockets(game: Game): Socket[] {
+        return game.players.map(player => {
+            return player.socket;
+        })
     }
 
 }

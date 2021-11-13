@@ -4,6 +4,9 @@ import { Server, Socket } from 'socket.io';
 import { GameService } from './game.service';
 import { Submission } from './dto/submission.dto';
 
+// TODO these imports should probably be refactored and put into modules or something
+import { Player } from './dto/player.dto';
+
 /**
  * Handles the web sockets, which themselves handle game events. 
  * 
@@ -16,6 +19,8 @@ export class EventGateway implements OnGatewayConnection, OnGatewayDisconnect{
     constructor(private gameService: GameService) {}
 
     /*
+      Note: This comment cannot be trusted as it was made early on in the design process 
+
         each page that loads, make the same readout: 
         gameId:
         name:
@@ -39,17 +44,21 @@ export class EventGateway implements OnGatewayConnection, OnGatewayDisconnect{
 
     async handleConnection() {
 
+      // probably, nothing needs to be done here
+
       // NOTE important to only emit to sockets in the current game
         console.log("CONNECT");
         // A client has connected
         // Notify connected clients of current users
-        this.server.send("test");
+        //this.server.send("test");
       }
       async handleDisconnect() {
         // A client has disconnected
         // Notify connected clients of current users
-        this.server.emit('users', null);
+        //this.server.emit('users', null);
       }
+
+
     
 
     @SubscribeMessage('events')
@@ -60,7 +69,29 @@ export class EventGateway implements OnGatewayConnection, OnGatewayDisconnect{
 
     // game functions from front end
 
+    /////// MAIN PAGE   
+    @SubscribeMessage('createNewGame')     
+    createNewGame(@MessageBody() name: string, @ConnectedSocket() client: Socket): any { // todo add type
+      let player = new Player(client, name);
+      const game = this.gameService.addGame({player});
+      return {
+        player, 
+        game
+      }
+    }
+
     /////// LOBBY
+    @SubscribeMessage('joinGame')     
+    joinGame(@MessageBody() params: {name: string, gameId: string}, @ConnectedSocket() client: Socket): any { // todo don't know if this is possible TODO add type
+      
+      let player = new Player(client, params.name);
+      const game = this.gameService.joinGame({gameId: params.gameId, player});
+      return {
+        player, 
+        game
+      }
+    }
+
     @SubscribeMessage('loadPlayers')
     loadPlayers(@MessageBody() gameId: string): string {
       return gameId;

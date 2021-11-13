@@ -10,7 +10,7 @@ export class GameController {
     async startNewGame() {
         // create a socket for the player.
         // create a new player object. 
-        const player = await new Player().init({name: "Joe Schmoe"});
+        const player = await new Player(null, null).init({name: "Joe Schmoe"});
         const game = await this.gameService.addGame({ player });
 
         return this.gameService.applyConfig({ 
