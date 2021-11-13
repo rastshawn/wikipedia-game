@@ -40,8 +40,8 @@ function Main() {
           <input value={playerName} onChange={e=>setPlayerName(e.target.value)} />
         </div>
         <div className="form-group">
-          <div onClick={newGameClick}>Start New Game</div>
-          <Link to="/game/new_game">last-ditch-effort</Link>
+          <button onClick={newGameClick}>Start New Game</button>
+          {/* <Link to="/game/new_game">last-ditch-effort</Link> */}
         </div>
       </div>
     </div>
