@@ -1,0 +1,84 @@
+test
+<!-- https://developer.mozilla.org/en-US/docs/Web/API/WebSockets_API/Writing_WebSocket_client_applications -->
+<script src="https://cdn.socket.io/4.1.2/socket.io.min.js" integrity="sha384-toS6mmwu70G0fw54EGlWWeA4z3dyJ+dlXBtSURSKN4vyRFOcxd3Bzjj/AoOwY+Rg" crossorigin="anonymous"></script>
+
+<script>
+//https://socket.io/docs/v4/client-api/
+const socket = io("http://localhost:3000/");
+socket.io.on("recconect_failed", () => {
+    alert("Couldn't connect to server.");
+    // display player ID to copy/paste to get back in?
+});
+
+socket.emit("events", {a: 1, b: 2}, (response) => {
+    console.log(response);
+});
+
+socket.on("events", (...args) => {
+    console.log(args);
+})
+
+socket.on("users", (...args) => {
+    console.log(args);
+})
+
+
+/*
+        each page that loads, make the same readout: 
+        gameId:
+        name:
+        [join game] - note: if gameID empty, this creates a new game
+        // currentGameId //
+
+        -- lobby section
+        // players //
+
+        -- game section
+        // question //
+        answer:
+        [submit]
+
+        -- vote section
+        [answer] [answer] [answer]
+        answerId: 
+        [submit]
+
+    */
+</script>
+
+<div id="joinGame">
+    <!--
+        gameId:
+        name:
+        [join game] - note: if gameID empty, this creates a new game
+        // currentGameId //
+    -->
+</div>
+
+<div id="players">
+    <!--
+        -- lobby section
+        // players //
+    -->
+</div>
+
+<div id="submit">
+    <!--
+         -- game section
+        // question //
+        answer:
+        [submit]
+    -->
+    <h3 class="question"></h3>
+</div>
+
+<div id="vote">
+    <!--
+        -- vote section
+        // question //
+        [answer] [answer] [answer]
+        answerId: 
+        [submit]
+    -->
+    <h3 class="question"></h3>
+</div>
