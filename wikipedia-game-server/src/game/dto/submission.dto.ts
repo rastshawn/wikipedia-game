@@ -13,5 +13,12 @@ export class Submission {
       this.text = text;
     }
 
-  
+    serialize() {
+      const ret = {
+        ...this,
+        player: this.player?.serialize()
+      }
+
+      return ret;
+    }
 }

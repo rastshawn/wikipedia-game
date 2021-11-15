@@ -14,5 +14,12 @@ export class Question {
       return this;
     }
 
-  
+  serialize() {
+    const ret = {
+      ...this,
+      submissions: this.submissions.map(submission => submission.serialize())
+    }
+
+    return ret;
+  }
 }

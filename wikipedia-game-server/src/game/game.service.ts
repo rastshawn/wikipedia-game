@@ -171,11 +171,17 @@ export class GameService {
         const currentQuestion: Question = game.questions[game.currentQuestionCounter];
         let phase: "writing"|"voting"|""|
         "scoring"|"endgame" = '';
+
+        const numPlayers = Object.keys(game.players).length;
         // have all write-ins been submitted? 
-        if (currentQuestion?.submissions?.length != game.players.length) {
+        // (minus one because the computer is not a player)
+        if (
+            currentQuestion?.submissions?.length == 1 ||
+            currentQuestion?.submissions?.length - 1 != numPlayers) {
             // not all write-ins have been submitted
             phase = "writing";
-        } else if (currentQuestion?.votes?.length != game.players.length) {
+
+        } else if (currentQuestion?.votes?.length != numPlayers) {
             phase = "voting";
         } else {
             // this question has had all submissions and votes, time to score

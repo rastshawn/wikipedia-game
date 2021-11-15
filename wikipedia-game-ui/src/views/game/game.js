@@ -19,6 +19,7 @@ const Game = function (/* props */) {
   const [loading, setLoading] = useState(true);
   const [currentGame, setCurrentGame] = useState(null);
   const [userIsInGame, setUserIsInGame] = useState(false);
+  const [userSubmission, setSubmission] = useState('answer goes here');
   // const [gamePhase, setGamePhase] = useState('lobby');
 
   const params = useParams();
@@ -41,6 +42,7 @@ const Game = function (/* props */) {
       case "writing":
         return <WritingPhase />;
       case "voting":
+        return <p>voting phase</p>
       case "scoring":
       case "endgame":
       case "lobby": 
@@ -54,7 +56,7 @@ const Game = function (/* props */) {
   // https://stackoverflow.com/questions/58432076/websockets-with-functional-components
   useEffect(() => { // https://wattenberger.com/blog/react-hooks
     updateGame();
-
+    console.log("main useEffect loop");
     socket.socketRef.on('newPlayer', (response) => {
       console.log(response);
       updateGame();
@@ -147,7 +149,32 @@ const Game = function (/* props */) {
   };
 
   const WritingPhase = function() {
-    return (<p>Writing phase</p>)
+    
+    const currentQuestion = currentGame.questions[currentGame.currentQuestionCounter];
+    const title = currentQuestion.article.title;
+    const sendSubmission = () => {
+      socket.socketRef.emit("enterSubmission", {
+        submission: userSubmission,
+        gameId: currentGame.id
+      }, (response) => {
+        // TODO handle response
+        console.log(response);
+      }) 
+    }
+    return (
+      <div className="writing">
+        <h1>{title}</h1>
+        <div className="submission-form">
+              <div className="form-group">
+                <p>Your guess:</p>
+                <input value={userSubmission} onChange={(e) => setSubmission(e.target.value)} />
+              </div>
+              <div className="form-group">
+                <button onClick={sendSubmission}>Submit</button>
+              </div>
+            </div>
+      </div>
+    )
   };
 
   ////////////////////////////////////////// RENDERING 

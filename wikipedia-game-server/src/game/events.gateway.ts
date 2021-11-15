@@ -146,8 +146,7 @@ export class EventGateway implements OnGatewayConnection, OnGatewayDisconnect{
       // try to get player ID from socket?
       // try to get the current game from the player ID? 
       const playerId = client.id;
-
-      return this.gameService.enterSubmission({
+      this.gameService.enterSubmission({
         gameId,
         playerId,
         text: submission

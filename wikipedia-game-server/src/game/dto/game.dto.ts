@@ -39,11 +39,12 @@ export class Game {
         return player.serialize()
       });
 
+
       return {
         players: serializedPlayers,
         id: this.id,
         currentQuestionCounter: this.currentQuestionCounter,
-        questions: this.questions,
+        questions: this.questions.map(question => question.serialize()),
         phase: this.phase,
         leadPlayerId: this.leadPlayerId,
         config: this.config
