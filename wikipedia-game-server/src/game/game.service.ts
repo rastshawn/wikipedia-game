@@ -94,9 +94,10 @@ export class GameService {
     };
 
     // this moves the game from the lobby mode into gameplay. 
-    // it should send a message along each player's socket.
-    async startGame({ gameId, config }: { gameId: string, config: GameConfig }) {
-        return null;
+    async startGame({ gameId }: { gameId: string }) {
+        const game = this.getGame(gameId);
+        this.manageGameState(game);
+        return game;
     };
 
     async applyConfig({ gameId, config }: { gameId: string, config: GameConfig }) {
@@ -168,29 +169,32 @@ export class GameService {
 
     private manageGameState(game: Game) {
         const currentQuestion: Question = game.questions[game.currentQuestionCounter];
-        let state: "writing"|"voting"|""|
+        let phase: "writing"|"voting"|""|
         "scoring"|"endgame" = '';
         // have all write-ins been submitted? 
         if (currentQuestion?.submissions?.length != game.players.length) {
             // not all write-ins have been submitted
-            state = "writing";
+            phase = "writing";
         } else if (currentQuestion?.votes?.length != game.players.length) {
-            state = "voting";
+            phase = "voting";
         } else {
             // this question has had all submissions and votes, time to score
-            state = "scoring";
+            phase = "scoring";
             // emit state "scoring"
             this.scoreQuestion(currentQuestion);
             if (game.currentQuestionCounter == game.questions.length) {
-                state = "endgame";
+                phase = "endgame";
             }
         }
-        game.state = state;
+        game.phase = phase;
         // TODO send state to all open sockets
         game.players.forEach((player) => {
             // player.socket.send(state); // maybe send entire game, plus state
         })
-        return state;
+        this.getAllPlayerSockets(game).map((socket) => {
+            socket.emit("gameState", game.serialize());
+        })
+        return phase;
     }
 
     advanceToNextQuestion(gameId: string) {

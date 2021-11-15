@@ -116,6 +116,11 @@ export class EventGateway implements OnGatewayConnection, OnGatewayDisconnect{
     loadPlayers(@MessageBody() gameId: string): string {
       return gameId;
     }
+
+    @SubscribeMessage('startGame')     
+    startGame(@MessageBody() params: {gameId: string}, @ConnectedSocket() client: Socket): any { // todo don't know if this is possible TODO add type
+      return this.gameService.startGame(params);
+    }
     ////// END LOBBY
 
 

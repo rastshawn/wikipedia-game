@@ -1,74 +1,76 @@
 // modified from https://stackoverflow.com/a/58435937
 // and https://developer.okta.com/blog/2021/07/14/socket-io-react-tutorial
-import socketIOClient from "socket.io-client";
+import socketIOClient from 'socket.io-client';
 
 class WebSocketClient {
-    static instance = null;
-    callbacks = {};
+  static instance = null;
 
-    static getInstance() {
-        if (!WebSocketClient.instance) WebSocketClient.instance = new WebSocketClient();
-        return WebSocketClient.instance;
-    }
+  callbacks = {};
 
-    constructor() {
-        this.socketRef = null;
-    }
+  static getInstance() {
+    if (!WebSocketClient.instance) WebSocketClient.instance = new WebSocketClient();
+    return WebSocketClient.instance;
+  }
 
-    addCallbacks = (...callbacks) => this.callbacks = { ...callbacks };
+  constructor() {
+    this.socketRef = null;
+  }
 
-    connect = () => {
-        console.log("connect called");
-        const path = 'http://localhost:3000/';
-        this.socketRef = socketIOClient(path);
+  addCallbacks = (...callbacks) => {
+    this.callbacks = { ...callbacks };
+  };
 
-        const socket = this.socketRef;
-        console.log(socket.constructor.name);
-        socket.on("connect", () => {
-            console.log("connected");
-            console.log(socket.id);
-        });
+  connect = () => {
+    console.log('connect called');
+    const path = 'http://localhost:3000/';
+    this.socketRef = socketIOClient(path);
 
-        socket.on("error", (error) => {
-            console.log(error);
-        })
+    const socket = this.socketRef;
+    console.log(socket.constructor.name);
+    socket.on('connect', () => {
+      console.log('connected');
+      console.log(socket.id);
+    });
 
-        // this.socketRef.onmessage = e => {
-        //     console.log(e.data);
-        //     //this.socketNewMessage(e.data);
-        // };
+    socket.on('error', (error) => {
+      console.log(error);
+    });
 
-        // this.socketRef.onerror = e => {
-        //     console.log(e.message);
-        // };
+    // this.socketRef.onmessage = e => {
+    //     console.log(e.data);
+    //     //this.socketNewMessage(e.data);
+    // };
 
-        socket.on("close",() => {
-            console.log("WebSocket closed let's reopen");
-            this.connect();
-        });
-    }
+    // this.socketRef.onerror = e => {
+    //     console.log(e.message);
+    // };
 
-    state = () => this.socketRef.readyState;
+    socket.on('close', () => {
+      console.log("WebSocket closed let's reopen");
+      this.connect();
+    });
+  };
 
-    // waitForSocketConnection = (callback) => {
-    //     const socket = this.socketRef;
-    //     const recursion = this.waitForSocketConnection;
-    //     setTimeout(
-    //         () => {
-    //             if (socket.readyState === 1) {
-    //                 console.log("Connection is made")
-    //                 if (callback != null) {
-    //                     callback();
-    //                 }
-    //                 return;
-    //             } else {
-    //                 console.log("wait for connection...")
-    //                 recursion(callback);
-    //             }
-    //         },
-    //     1);
-    // }
+  state = () => this.socketRef.readyState;
 
+  // waitForSocketConnection = (callback) => {
+  //     const socket = this.socketRef;
+  //     const recursion = this.waitForSocketConnection;
+  //     setTimeout(
+  //         () => {
+  //             if (socket.readyState === 1) {
+  //                 console.log("Connection is made")
+  //                 if (callback != null) {
+  //                     callback();
+  //                 }
+  //                 return;
+  //             } else {
+  //                 console.log("wait for connection...")
+  //                 recursion(callback);
+  //             }
+  //         },
+  //     1);
+  // }
 }
 
 export default WebSocketClient.getInstance();

@@ -8,7 +8,7 @@ export class Game {
     currentQuestionCounter: number;
     questions: Question[]; // TODO This has to be hidden from the network tab. maybe make it private? Send via socket(?)
     players: Player[];
-    state: "writing"|"voting"|"lobby"|"scoring"|"endgame"|"";
+    phase: "writing"|"voting"|"lobby"|"scoring"|"endgame"|"";
     leadPlayerId: string; // the player in control of the game.
     config: GameConfig; // stored for possibly replaying with same config
 
@@ -18,6 +18,7 @@ export class Game {
       this.players[player.id] = player;
       this.leadPlayerId = player.id;
       this.currentQuestionCounter = 0;
+      this.phase = "lobby";
       this.id = uuid();
       // note: questions still need to be loaded. 
       return this;
@@ -43,7 +44,7 @@ export class Game {
         id: this.id,
         currentQuestionCounter: this.currentQuestionCounter,
         questions: this.questions,
-        state: this.state,
+        phase: this.phase,
         leadPlayerId: this.leadPlayerId,
         config: this.config
       }
@@ -55,7 +56,7 @@ export interface GameSerialized {
   id: string;
   currentQuestionCounter: number;
   questions: Question[]; 
-  state: "writing"|"voting"|"lobby"|"scoring"|"endgame"|"";
+  phase: "writing"|"voting"|"lobby"|"scoring"|"endgame"|"";
   leadPlayerId: string; 
   config: GameConfig; 
 }
