@@ -124,12 +124,13 @@ export class GameService {
 
     joinGame({ gameId, player }: { gameId: string, player: Player }) {
         const game = this.getGame(gameId);
-        game.players.push(player);
+        game.players[player.id] = player;
 
         // emit to all sockets that a player has joined
         // we don't really need to await this, but TODO we might want to know if it fails
         this.getAllPlayerSockets(game).forEach((socket) => {
-            socket.emit("newPlayer", game.players)
+            //socket.emit("newPlayer", game.serialize());
+            socket.emit("newPlayer", player.serialize());
         })
         return game;
     };
@@ -232,8 +233,8 @@ export class GameService {
     }
 
     getAllPlayerSockets(game: Game): Socket[] {
-        return game.players.map(player => {
-            return player.socket;
+        return Object.keys(game.players).map(playerId => {
+            return game.players[playerId].socket;
         })
     }
 

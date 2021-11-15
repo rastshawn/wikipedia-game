@@ -18,6 +18,12 @@ export class WikipediaService {
     }
 
     async getRandomArticle(): Promise<Article> {
+
+        /* TODO: enhancement. 
+              Make criteria for what makes a good article
+              (limit length in particular) and precalculate a db of articles by calling random articles over and over.
+              On load, check that criteria are correct and if not update db
+        */
         const officialTitle = await this.getRandomArticleTitle();
         return this.getArticle(officialTitle);
     }

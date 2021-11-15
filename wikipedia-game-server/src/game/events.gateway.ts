@@ -100,10 +100,11 @@ export class EventGateway implements OnGatewayConnection, OnGatewayDisconnect{
       // TODO need to serialize the game and player
       let player = new Player(client, params.name);
       const game = this.gameService.joinGame({gameId: params.gameId, player});
-      return {
-        player, 
-        game
-      }
+      // return {
+      //   player: player.serialize(), 
+      //   game: game.serialize()
+      // }
+      return game.serialize();
     }
     @SubscribeMessage('getGame')     
     getGame(@MessageBody() gameId: string, /* use for auth @ConnectedSocket() client: Socket*/): GameSerialized { 
