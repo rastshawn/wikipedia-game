@@ -15,13 +15,12 @@ else, if game is going:
 
 */
 const Game = function (/* props */) {
-  const [playerName, setPlayerName] = useState('Player');
+
   const [loading, setLoading] = useState(true);
   const [currentGame, setCurrentGame] = useState(null);
   const [userIsInGame, setUserIsInGame] = useState(false);
-  const [userSubmission, setSubmission] = useState('answer goes here');
-  // const [gamePhase, setGamePhase] = useState('lobby');
 
+  // const [gamePhase, setGamePhase] = useState('lobby');
   const params = useParams();
 
 
@@ -42,7 +41,7 @@ const Game = function (/* props */) {
       case "writing":
         return <WritingPhase />;
       case "voting":
-        return <p>voting phase</p>
+        return <VotingPhase />;
       case "scoring":
       case "endgame":
       case "lobby": 
@@ -56,7 +55,6 @@ const Game = function (/* props */) {
   // https://stackoverflow.com/questions/58432076/websockets-with-functional-components
   useEffect(() => { // https://wattenberger.com/blog/react-hooks
     updateGame();
-    console.log("main useEffect loop");
     socket.socketRef.on('newPlayer', (response) => {
       console.log(response);
       updateGame();
@@ -79,23 +77,28 @@ const Game = function (/* props */) {
 
   useEffect(() => {
     console.log(currentGame);
-    setUserIsInGame(isUserInGame());
+    const isUserCurrentlyInGame = isUserInGame();
+    if (isUserCurrentlyInGame != userIsInGame) {
+      setUserIsInGame(isUserCurrentlyInGame);
+    }
     return () => {
       // this gets called when the component is cleared
       // clearInterval(interval);
     };
   }, [currentGame]);
 
-  const joinClick = () => {
-    socket.socketRef.emit('joinGame', {
-      name: playerName,
-      gameId: params.id,
-    }, (response) => {
-      setCurrentGame(response);
-    });
-  };
+
   ////////////////////////////////////////// SUBCOMPONENTS 
   const LobbyPhase = () => {
+    const joinClick = () => {
+      socket.socketRef.emit('joinGame', {
+        name: playerName,
+        gameId: params.id,
+      }, (response) => {
+        setCurrentGame(response);
+      });
+    };
+  const [playerName, setPlayerName] = useState('Player');
     return (
       <div className="lobby">
         {
@@ -149,7 +152,7 @@ const Game = function (/* props */) {
   };
 
   const WritingPhase = function() {
-    
+    const [userSubmission, setSubmission] = useState('answer goes here');
     const currentQuestion = currentGame.questions[currentGame.currentQuestionCounter];
     const title = currentQuestion.article.title;
     const sendSubmission = () => {
@@ -173,6 +176,20 @@ const Game = function (/* props */) {
                 <button onClick={sendSubmission}>Submit</button>
               </div>
             </div>
+      </div>
+    )
+  };
+
+  const VotingPhase = function() {
+    const currentQuestion = currentGame.questions[currentGame.currentQuestionCounter];
+    const submissions = currentQuestion.submissions;
+    return (
+      <div className="writing">
+        <ol>{
+          submissions.map((submission) => {
+            return (<li>{submission.text}</li>)
+          })
+        }</ol>
       </div>
     )
   };
