@@ -12,5 +12,12 @@ export class Vote {
       return this;
     }
 
+    serialize() {
+      return {
+        ...this,
+        player: this.player.serialize()
+      }
+    }
+
   
 }

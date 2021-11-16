@@ -16,8 +16,11 @@ else, if game is going:
 */
 const Game = function (/* props */) {
 
+  // surely not all of these are necessary
   const [loading, setLoading] = useState(true);
   const [currentGame, setCurrentGame] = useState(null);
+  const [currentPhase, setCurrentPhase] = useState('lobby');
+  const [currentQuestion, setCurrentQuestion] = useState(null);
   const [userIsInGame, setUserIsInGame] = useState(false);
 
   // const [gamePhase, setGamePhase] = useState('lobby');
@@ -27,6 +30,7 @@ const Game = function (/* props */) {
   ////////////////////////////////////////// HELPER FUNCTIONS
   const updateGame = () => {
     socket.socketRef.emit('getGame', params.id, (response) => {
+      // only update game state if it's different from current
       setCurrentGame(response);
       console.log(response);
     });
@@ -37,13 +41,16 @@ const Game = function (/* props */) {
     return player.id === socket.socketRef.id;
   });
   const renderPhase = () => {
-    switch (currentGame?.phase) {
+    console.log("called");
+    switch (currentPhase) {
       case "writing":
         return <WritingPhase />;
       case "voting":
         return <VotingPhase />;
       case "scoring":
+        return <ScoringPhase />;
       case "endgame":
+        return <EndGamePhase />;
       case "lobby": 
         return (<LobbyPhase />);
       default: 
@@ -68,7 +75,6 @@ const Game = function (/* props */) {
     // then when player joins, show page
 
     // await functions can go here
-    setLoading(false);
     return () => {
       // this gets called when the component is cleared
       // clearInterval(interval);
@@ -80,6 +86,19 @@ const Game = function (/* props */) {
     const isUserCurrentlyInGame = isUserInGame();
     if (isUserCurrentlyInGame != userIsInGame) {
       setUserIsInGame(isUserCurrentlyInGame);
+    }
+
+    // relatively easy way to check if the question object has changed at all
+    const checkCurrentQuestion = currentGame?.questions[currentGame.currentQuestionCounter];
+    const checkCurrentQuestionJSON = JSON.stringify(checkCurrentQuestion);
+    const currentQuestionJSON = JSON.stringify(currentQuestion);
+    if (checkCurrentQuestionJSON?.length !== currentQuestionJSON?.length) {
+      setCurrentQuestion(checkCurrentQuestion);
+    }
+
+    const checkGamePhase = currentGame?.phase;
+    if (currentPhase !== checkGamePhase) {
+      setCurrentPhase(checkGamePhase);
     }
     return () => {
       // this gets called when the component is cleared
@@ -144,7 +163,7 @@ const Game = function (/* props */) {
         <button onClick={() => {
           // TODO check to see if person is leader
           socket.socketRef.emit("startGame", {
-            gameId: currentGame.id
+            gameId: params.id
           })
         }}>Start Game</button>
       </div>
@@ -153,12 +172,12 @@ const Game = function (/* props */) {
 
   const WritingPhase = function() {
     const [userSubmission, setSubmission] = useState('answer goes here');
-    const currentQuestion = currentGame.questions[currentGame.currentQuestionCounter];
+
     const title = currentQuestion.article.title;
     const sendSubmission = () => {
       socket.socketRef.emit("enterSubmission", {
         submission: userSubmission,
-        gameId: currentGame.id
+        gameId: params.id
       }, (response) => {
         // TODO handle response
         console.log(response);
@@ -181,13 +200,63 @@ const Game = function (/* props */) {
   };
 
   const VotingPhase = function() {
-    const currentQuestion = currentGame.questions[currentGame.currentQuestionCounter];
+    
     const submissions = currentQuestion.submissions;
+
+    const shuffledCopy = (arr) => { // from https://stackoverflow.com/a/12646864
+      let clone = arr.slice(0);
+      for (let i = clone.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [clone[i], clone[j]] = [clone[j], clone[i]];
+      }
+      return clone;
+    }
+    const sendVote = (id) => {
+      socket.socketRef.emit("sendVote", {
+        submissionId: id,
+        gameId: params.id
+      }, (response) => {
+        // TODO handle response
+        console.log(response);
+      }) 
+    }
     return (
-      <div className="writing">
+      <div className="voting">
         <ol>{
-          submissions.map((submission) => {
-            return (<li>{submission.text}</li>)
+          shuffledCopy(submissions).map((submission) => {
+            return (<li><button onClick={() => {sendVote(submission.id)}}>{submission.text}</button></li>)
+          })
+        }</ol>
+      </div>
+    )
+  };
+
+  const ScoringPhase = function() {
+    const players = currentGame.players;
+    
+
+    return (
+      <div className="scoring">
+        <ol>{
+          players.map((player) => {
+            return (<li>{player.name} - {player.score}</li>)
+          })
+        }</ol>
+        <p>The next question will start in 5 seconds.</p>
+      </div>
+    )
+  };
+
+  const EndGamePhase = function() {
+    const players = currentGame.players;
+    
+
+    return (
+      <div className="scoring">
+        <h1>FINAL RESULTS</h1>
+        <ol>{
+          players.map((player) => {
+            return (<li>{player.name} - {player.score}</li>)
           })
         }</ol>
       </div>

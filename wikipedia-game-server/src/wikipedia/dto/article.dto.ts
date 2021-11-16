@@ -30,7 +30,8 @@ export class Article {
       // TODO fix issues with quoted text - test: Monosodium_glutamate, Turkwel_River
       // TODO exclude category / list pages - test: List_of_professional_wrestling_terms
       // TODO error on this specific person - test: Lee_Min_Ho
-      
+      // TODO remove list pages - test: List of states and union territories of India by area
+	  this.title = this.rawPage.title;      
       // For topic sentence mode: strip out parentheses. https://stackoverflow.com/questions/55232131/about-parsing-parentheses-in-english-model
       return this;
     }

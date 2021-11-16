@@ -22,7 +22,7 @@ class WebSocketClient {
 
   connect = () => {
     console.log('connect called');
-    const path = 'http://localhost:3000/';
+    const path = '/';
     this.socketRef = socketIOClient(path);
 
     const socket = this.socketRef;

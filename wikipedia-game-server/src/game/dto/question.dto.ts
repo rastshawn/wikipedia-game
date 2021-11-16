@@ -17,7 +17,8 @@ export class Question {
   serialize() {
     const ret = {
       ...this,
-      submissions: this.submissions.map(submission => submission.serialize())
+      submissions: this.submissions.map(submission => submission.serialize()),
+      votes: this.votes.map(vote => vote.serialize())
     }
 
     return ret;

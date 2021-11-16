@@ -27,7 +27,6 @@ export class GameService {
 
         // make array of players, indexed by submission ID
         question.submissions.forEach((submission) => {
-            let playerId = 'SYSTEM';
 
 
             let playerOrSystemObj = {
@@ -36,6 +35,7 @@ export class GameService {
             if (submission.player != null) {
                 playerOrSystemObj = submission.player;
             }
+            let playerId = playerOrSystemObj.id;
 
             const newPlayerScoreObject = {
                 player: playerOrSystemObj,
@@ -49,7 +49,7 @@ export class GameService {
             playersByPlayerId[playerId] = newPlayerScoreObject;
             
             // if submission was not written by a computer
-            if (submission.player.id != 'SYSTEM') {
+            if (playerId != 'SYSTEM') {
                 playersArray.push(newPlayerScoreObject);
             }
         })
@@ -62,13 +62,26 @@ export class GameService {
             // this submission is the correct (computer's) submission if the player ID is SYSTEM
             if (playerWhoWroteSubmission.player.id == 'SYSTEM') {
                 playerWhoVotedForSubmission.score += pointsForBeingCorrect;
+                playerWhoVotedForSubmission.player.score += pointsForBeingCorrect;
             } else {
                 playerWhoWroteSubmission.score += pointsForBeingGuessed;
+                playerWhoWroteSubmission.player.score += pointsForBeingGuessed;
                 playerWhoWroteSubmission.fooledArray.push(playerWhoVotedForSubmission.name);
             }
         })
 
+        // const ret = Object.keys(playersByPlayerId).map((key) => {
+        //     const tabulateObj = playersByPlayerId[key];
+        //     const ret = {
+        //         ...tabulateObj
+        //     };
+        //     if (typeof tabulateObj.player.serialize === "function") {
+        //         ret.player = tabulateObj.player.serialize();
+        //     }
+        //     return ret;
+        // })
         return playersByPlayerId;
+        //return ret;
     }
 
     getPlayerScores(game: Game) {
@@ -159,7 +172,7 @@ export class GameService {
     enterVote({ gameId, playerId, submissionId }: { gameId: string, playerId: string, submissionId: string }) {
         const game = this.getGame(gameId);
         const question = game.questions[game.currentQuestionCounter];
-        const player = game.getPlayer[playerId];
+        const player = game.getPlayer(playerId);
         question.votes.push(
             new Vote(player, submissionId)
         );
@@ -188,19 +201,30 @@ export class GameService {
             phase = "scoring";
             // emit state "scoring"
             this.scoreQuestion(currentQuestion);
-            if (game.currentQuestionCounter == game.questions.length) {
+
+            if (game.currentQuestionCounter == game.questions.length - 1) {
                 phase = "endgame";
+            } else {
+                // After 10 seconds, advance to the next question
+                setTimeout(() => {
+                    this.advanceToNextQuestion(game.id)
+                }, 5000)
             }
         }
+        const oldGamePhase = game.phase;
         game.phase = phase;
         // TODO send state to all open sockets
         game.players.forEach((player) => {
             // player.socket.send(state); // maybe send entire game, plus state
         })
-        this.getAllPlayerSockets(game).map((socket) => {
-            socket.emit("gameState", game.serialize());
-        })
-        return phase;
+        if (oldGamePhase != game.phase) {
+            // only emit to users when the phase state actually changes
+            this.getAllPlayerSockets(game).map((socket) => {
+                socket.emit("gameState", game.serialize());
+            })
+            return phase;
+        }
+
     }
 
     advanceToNextQuestion(gameId: string) {
