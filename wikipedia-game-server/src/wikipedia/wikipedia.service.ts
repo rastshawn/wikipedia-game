@@ -1,6 +1,7 @@
 import { Injectable, HttpService } from '@nestjs/common';
 import { Article } from './dto/article.dto';
 
+const wiki: "simple" | "en" = "simple";
 @Injectable()
 export class WikipediaService {
     constructor(private httpService: HttpService) {};
@@ -11,7 +12,7 @@ export class WikipediaService {
 
     private async getRandomArticleTitle(): Promise<string> {
         // get a random article that has at least five sentences from simple wikipedia. 
-        const response = await this.httpService.get('https://simple.wikipedia.org/wiki/Special:Random').toPromise();
+        const response = await this.httpService.get(`https://${wiki}.wikipedia.org/wiki/Special:Random`).toPromise();
         const articleUrl = response.request.res.responseUrl;
         const articleSplit = articleUrl.split('/');
         return articleSplit[articleSplit.length - 1];
@@ -91,7 +92,7 @@ export class WikipediaService {
    async getArticle(officialTitle): Promise<Article> {
     //https://www.mediawiki.org/wiki/API:Query
     // todo - use random generator from above link
-    const response = await this.httpService.get(`https://simple.wikipedia.org/w/api.php?action=query&prop=extracts|categories&explaintext&format=json&titles=${officialTitle}`).toPromise();
+    const response = await this.httpService.get(`https://${wiki}.wikipedia.org/w/api.php?action=query&prop=extracts|categories&explaintext&format=json&titles=${officialTitle}`).toPromise();
     return new Article().init(response.data);
 }
 
