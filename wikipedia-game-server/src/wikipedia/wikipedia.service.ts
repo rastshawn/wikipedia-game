@@ -17,15 +17,28 @@ export class WikipediaService {
         return articleSplit[articleSplit.length - 1];
     }
 
-    async getRandomArticle(): Promise<Article> {
+    async getRandomArticle(numAttempts = 0): Promise<Article> {
+      const officialTitle = await this.getRandomArticleTitle();
+
+      // keep trying forever. To limit number of attempts, uncomment
+      // if (numAttempts == 3) {
+      //   // on final attempt, try it one last time without the try/catch
+      //   return this.getArticle(officialTitle);
+      // }
 
         /* TODO: enhancement. 
               Make criteria for what makes a good article
               (limit length in particular) and precalculate a db of articles by calling random articles over and over.
               On load, check that criteria are correct and if not update db
         */
-        const officialTitle = await this.getRandomArticleTitle();
-        return this.getArticle(officialTitle);
+       try {
+          // await is here so that the catch block will be hit
+          return await this.getArticle(officialTitle);
+       } catch (e) {
+          // retry
+          return this.getRandomArticle(numAttempts++);
+       }
+        
     }
 
     async getTestArticle(): Promise<Article> {

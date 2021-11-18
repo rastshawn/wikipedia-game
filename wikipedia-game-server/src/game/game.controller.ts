@@ -1,4 +1,4 @@
-import { Controller, Get, Post } from '@nestjs/common';
+import { Controller, Get, Post, Param } from '@nestjs/common';
 import { GameService } from './game.service';
 import { Player } from './dto/player.dto';
 
@@ -20,6 +20,29 @@ export class GameController {
             }
         })
     }
+
+    @Get('/:gameId')
+    async getGame(@Param() params) {
+        return this.gameService.getGame(
+            params.gameId
+        )
+    }
+
+
+    @Get('/:gameId/articles')
+    async getArticles(@Param() params) {
+        const game = this.gameService.getGame(
+            params.gameId
+        );
+
+        return game.questions.map((question) => {
+            return {
+                title: question.article.title,
+                sentence: question.article.trimmedTopicSentence
+            }
+        })
+    }
+    
 
     @Post('/trueSentence')
     randomSentence(article) {
